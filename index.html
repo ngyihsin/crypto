@@ -4,7 +4,7 @@
 
 <h3>SHA1 Generator</h3>
 
-<input id="myinput">
+<input id="myinput" size="100">
 <button id="myButton" onclick="generator()">SHA1 Generator</button>
 <p id="result"></p>
 
@@ -14,6 +14,8 @@ function sha1(str) {
   var buffer = new TextEncoder("utf-8").encode(str);
   return crypto.subtle.digest("SHA-1", buffer).then(function (hash) {
     return hex(hash);
+  }).catch(()=>{
+    return "Please use Chrome or Firefox Browser !!!";
   });
 }
 
