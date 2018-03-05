@@ -1,1 +1,49 @@
-<h1>Hello !!!</h1>
+<!DOCTYPE html>
+<html>
+<body>
+
+<h3>SHA1 Generator</h3>
+
+<input id="myinput">
+<button id="myButton" onclick="generator()">SHA1 Generator</button>
+<p id="result"></p>
+
+<script>
+function sha1(str) {
+  // We transform the string into an arraybuffer.
+  var buffer = new TextEncoder("utf-8").encode(str);
+  return crypto.subtle.digest("SHA-1", buffer).then(function (hash) {
+    return hex(hash);
+  });
+}
+
+function hex(buffer) {
+  var hexCodes = [];
+  var view = new DataView(buffer);
+  for (var i = 0; i < view.byteLength; i += 4) {
+    // Using getUint32 reduces the number of iterations needed (we process 4 bytes each time)
+    var value = view.getUint32(i)
+    // toString(16) will give the hex representation of the number without padding
+    var stringValue = value.toString(16)
+    // We use concatenation and slice for padding
+    var padding = '00000000'
+    var paddedValue = (padding + stringValue).slice(-padding.length)
+    hexCodes.push(paddedValue);
+  }
+
+  // Join all the hex strings into one
+  return hexCodes.join("");
+}
+
+
+function generator() {
+    var x = document.getElementById("myinput").value;
+
+    sha1(x).then(function(digest) {
+      document.getElementById("result").innerHTML = digest;
+    });
+}
+</script>
+
+</body>
+</html>
