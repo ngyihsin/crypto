@@ -39,6 +39,10 @@ function hex(buffer) {
 
 
 function generator() {
+    if (!crypto || !crypto.subtle || !crypto.subtle.digest) {
+      document.getElementById("result").innerHTML = "Your browser doesn't support web crypto APIs. Please use Chrome or Firefox Browser !!!";
+      return;
+    }
     var x = document.getElementById("myinput").value;
 
     sha1(x).then(function(digest) {
