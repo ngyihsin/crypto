@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h3>Access Control Rules Parser</h3>
+
+<input id="myinput" size="100">
+<button id="myButton" onclick="generator()">Access control rule parser</button>
+<p id="result"></p>
+
+<script>
+let REF_AR_DO = 0xE2;
+let REF_DO = 0xE1;
+let AR_DO = 0xE3;
+let HASH_REF_DO = 0xC1;
+let AID_REF_DO  = 0x4F;
+let APDU_AR_DO  = 0xD0;
+let NFC_AR_DO   = 0xD1;
+
+function _parseArDo(bytes) {
+  let result = {};
+  result[APDU_AR_DO] = [];
+  result[NFC_AR_DO] = [];
+  for (let pos = 0; pos < bytes.length; ) {
+    let tag = bytes[pos],
+    length = bytes[pos + 1],
+    parsed = null;
+    switch(tag) {
+    case APDU_AR_DO:
+      let apduRuleValue = bytes.slice(pos + 2,  pos + 2 + length);
+      result[APDU_AR_DO] = apduRuleValue;
+      break;
+    case NFC_AR_DO:
+      let nfcRuleValue = bytes.slice(pos + 2, pos + 2 + length);
+      result[NFC_AR_DO] = nfcRuleValue;
+      break;
+    default:
+      break;
+    }
+
+    pos = pos + 2 + length;
+  }
+  return result;
+}
+
+function _parseRefDo(bytes) {
+  let result = {};
+  result[HASH_REF_DO] = [];
+  result[AID_REF_DO] = [];
+  for (let pos = 0; pos < bytes.length; ) {
+    let tag = bytes[pos],
+    length = bytes[pos + 1],
+    parsed = null;
+
+    switch(tag) {
+    case HASH_REF_DO:
+      let hashRefValue = bytes.slice(pos + 2, pos + 2 + length);
+      result[HASH_REF_DO] = hashRefValue;
+      break;
+    case AID_REF_DO:
+      let aidRefValue = bytes.slice(pos + 2, pos + 2 + length);
+      result[AID_REF_DO] = aidRefValue;
+      break;
+    default:
+      break;
+    }
+
+    pos = pos + 2 + length;
+  }
+  return result;
+}
+
+function _parseARRule(rule) {
+  let result = {};
+  result[REF_DO] = [];
+  result[AR_DO] = [];
+  for (let pos = 0; pos < rule.length; ) {
+    let tag = rule[pos],
+    length = rule[pos + 1],
+    value = rule.slice(pos + 2, pos + 2 + length),
+    parsed = null;
+
+    switch(tag) {
+    case REF_DO:
+      result[REF_DO] = this._parseRefDo(value);
+      break;
+    case AR_DO:
+      result[AR_DO] = this._parseArDo(value);
+      break;
+    default:
+      break;
+    }
+
+    pos = pos + 2 + length;
+  }
+  return {
+    hash: result[REF_DO][HASH_REF_DO],
+    aid:  result[REF_DO][AID_REF_DO],
+    apduRules: result[AR_DO][APDU_AR_DO],
+    nfcRule: result[AR_DO][NFC_AR_DO]
+  }
+}
+
+function _parseARRules(payload) {
+  let rules = [];
+  let rule;
+  for (let pos = 0; pos < payload.length;) {
+    if (payload[pos] != REF_AR_DO) {
+      pos++;
+      continue;
+    }
+
+    let refArDoLength = payload[pos + 1];
+
+    let refArDo = payload.slice(pos + 2, pos + 2 + refArDoLength);
+    rule = this._parseARRule(refArDo);
+   
+    pos += 2 + refArDoLength;
+    rules.push(rule);
+  }
+  return rules;
+}
+
+function hexStringToByteArray(hexStr) {
+  if (typeof hexStr !== "string" || hexStr.length % 2 !== 0) {
+    return [];
+  }
+
+  let array = [];
+  for (let i = 0, len = hexStr.length; i < len; i += 2) {
+    array.push(parseInt(hexStr.substr(i, 2), 16));
+  }
+
+  return array;
+}
+
+function byteArrayToHexString(array) {
+  let hexStr = "";
+
+  let len = array ? array.length : 0;
+  for (let i = 0; i < len; i++) {
+    let hex = (array[i] & 0xff).toString(16);
+    hex = (hex.length === 1) ? "0" + hex : hex;
+    hexStr += hex;
+  }
+
+  return hexStr.toUpperCase();
+}
+
+function generator() {  
+  var x = document.getElementById("myinput").value;
+  var payload = hexStringToByteArray(x);
+  var rules = _parseARRules(payload);
+  var r = [];
+  let s = "";
+  let id = 0;
+  for (var rule in rules) {
+    s = "Application Hash:" 
+    s += byteArrayToHexString(rules[rule].hash);
+    s += " AID:";
+    s += byteArrayToHexString(rules[rule].aid);
+    s += " APDURules:";
+    s += byteArrayToHexString(rules[rule].apduRules);
+    s += " NFCRule:";
+    s += byteArrayToHexString(rules[rule].nfcRule);
+    r.push(s);
+    var newElement = document.createElement('div');
+    newElement.id = "result" + id; 
+    newElement.className = "ace rule";
+    newElement.innerHTML = s;
+    document.body.appendChild(newElement);
+  }
+}
+</script>
+
+</body>
+</html>
