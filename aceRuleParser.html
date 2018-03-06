@@ -4,7 +4,7 @@
 
 <h3>Access Control Rules Parser</h3>
 
-<input id="myinput" size="100">
+<textarea id="myinput" rows="40" cols="64"> </textarea>
 <button id="myButton" onclick="generator()">Access control rule parser</button>
 <p id="result"></p>
 
@@ -147,13 +147,29 @@ function byteArrayToHexString(array) {
   return hexStr.toUpperCase();
 }
 
+function singleLine(lines) {
+  var array = lines.split("\n");
+  var s = "";
+  
+  for (var i = 0; i < array.length; i++) {
+    var t = array[i].replace(/[ \t\f\v]/g,'');
+    s+=t;
+  }
+  return s;
+}
+  
 function generator() {  
-  var x = document.getElementById("myinput").value;
+  var inputHex = document.getElementById("myinput").value;
+  var x = singleLine(inputHex);
   var payload = hexStringToByteArray(x);
   var rules = _parseARRules(payload);
   var r = [];
   let s = "";
   let id = 0;
+  var result = document.getElementById("result");
+  while (result.firstChild) {
+    result.removeChild(result.firstChild);
+  }
   for (var rule in rules) {
     s = "Application Hash:" 
     s += byteArrayToHexString(rules[rule].hash);
@@ -168,7 +184,7 @@ function generator() {
     newElement.id = "result" + id; 
     newElement.className = "ace rule";
     newElement.innerHTML = s;
-    document.body.appendChild(newElement);
+    result.appendChild(newElement);
   }
 }
 </script>
