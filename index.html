@@ -4,9 +4,15 @@
 
 <h3>SHA1 Generator</h3>
 
-<input id="myinput" size="100">
-<button id="myButton" onclick="generator()">SHA1 Generator</button>
-<p id="result"></p>
+WebApp ID:<input id="myinput" size="100"><br>
+Applet ID:<input id="myapplet" size="100"><br>
+<button id="myButton" onclick="generator()">SHA1 Generator</button><br>
+General allow rule:<p id="generalallowrule"></p><br>
+General disallow rule:<p id="generaldisallowrule"></p><br>
+Delete general rule:<p id="deletegeneralrule"></p><br>
+Specific allow rules:<p id="specificallowrule"></p><br>
+Specific disallow rule:<p id="specificdisallowrule"></p><br>
+Delete specific rule:<p id="deletespecificrule"></p><br>
 
 <script>
 function sha1(str) {
@@ -44,8 +50,15 @@ function generator() {
       return;
     }
     var x = document.getElementById("myinput").value;
+    var appletid = document.getElementById("myapplet").value;
 
     sha1(x).then(function(digest) {
+      document.getElementById("generalallowrule").innerHTML = "store-data -f 10 F0#(E2#(E1#(4F#()C1#())E3#(D0#(01)D1#(01))))";
+      document.getElementById("generaldisallowrule").innerHTML = "store-data -f 10 F0#(E2#(E1#(4F#()C1#())E3#(D0#(00)D1#(00))))";
+      document.getElementById("deletegeneralrule").innerHTML = "send 80E29000#(F1#(E2#(E1#(4F00C100)E3#(D000D100))))";
+      document.getElementById("specificallowrule").innerHTML = "store-data -f 10 F0#(E2#(E1#(4F#(" + appletid + ")C1#(" + digest + "))E3#(D0#(01)D1#(01))))";
+      document.getElementById("specificdisallowrule").innerHTML = "store-data -f 10 F0#(E2#(E1#(4F#(" + appletid + ")C1#(" + digest + "))E3#(D0#(00)D1#(00))))";
+      document.getElementById("deletespecificrule").innerHTML = "send 80E29000#(F1#(E2#(E1#(4F#(" + appletid + ")C1#(" + digest + "))E3#(D000D100))))";
       document.getElementById("result").innerHTML = digest;
     });
 }
